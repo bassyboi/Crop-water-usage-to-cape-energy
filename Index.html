@@ -21,51 +21,50 @@
     <li><strong>CAPE increase:</strong> Compute an approximate extra CAPE using the effective temperature boost.</li>
   </ol>
 
+  <!-- Step 1: Watering the Crop -->
   <div class="section">
     <h2>Step 1: Watering the Crop</h2>
-    <form id="waterForm">
-      <label>
-        Crop area (hectares):
-        <input type="number" id="areaHa" value="10000" step="100" min="1">
-      </label>
-      <label>
-        Daily water usage per hectare (m³/day):<br>
-        (For example: 1 megaliter/10 days ≈ 100 m³/day)
-        <input type="number" id="waterUsage" value="100" step="1" min="0">
-      </label>
-    </form>
+    <label>
+      Crop area (hectares):
+      <input type="number" id="areaHa" value="10000" step="100" min="1">
+    </label>
+    <label>
+      Daily water usage per hectare (m³/day):<br>
+      (For example: 1 megaliter/10 days ≈ 100 m³/day)
+      <input type="number" id="waterUsage" value="100" step="1" min="0">
+    </label>
   </div>
 
+  <!-- Step 2: Boundary Layer Mixing -->
   <div class="section">
     <h2>Step 2: Boundary Layer Mixing</h2>
-    <form id="boundaryForm">
-      <label>
-        Boundary layer depth (m):
-        <input type="number" id="blDepth" value="1000" step="50" min="100">
-      </label>
-      <label>
-        Air density (kg/m³) (typically ≈1.2):
-        <input type="number" id="airDensity" value="1.2" step="0.1" min="0">
-      </label>
-    </form>
+    <label>
+      Boundary layer depth (m):
+      <input type="number" id="blDepth" value="1000" step="50" min="100">
+    </label>
+    <label>
+      Air density (kg/m³) (typically ≈1.2):
+      <input type="number" id="airDensity" value="1.2" step="0.1" min="0">
+    </label>
   </div>
 
+  <!-- Step 3: CAPE Calculation -->
   <div class="section">
     <h2>Step 3: CAPE Calculation</h2>
-    <form id="capeForm">
-      <label>
-        Average temperature in the CAPE layer (K):
-        <input type="number" id="avgTemp" value="280" step="1" min="200">
-      </label>
-      <label>
-        CAPE layer thickness (h<sub>CAPE</sub>) (m):
-        <input type="number" id="capeLayer" value="3000" step="50" min="100">
-      </label>
-    </form>
+    <label>
+      Average temperature in the CAPE layer (K):
+      <input type="number" id="avgTemp" value="280" step="1" min="200">
+    </label>
+    <label>
+      CAPE layer thickness (h<sub>CAPE</sub>) (m):
+      <input type="number" id="capeLayer" value="3000" step="50" min="100">
+    </label>
   </div>
 
+  <!-- Calculate Button -->
   <button type="button" onclick="calculateAll()">Calculate</button>
 
+  <!-- Results Display -->
   <div class="result" id="result"></div>
 
   <script>
@@ -74,50 +73,50 @@
       const L_v = 2.5e6;    // Latent heat of condensation (J/kg)
       const c_p = 1000;     // Specific heat of air (J/(kg·K))
       const g = 9.8;        // gravitational acceleration (m/s²)
-      
+
       // Step 1: Crop Watering
-      let areaHa = parseFloat(document.getElementById("areaHa").value);         // in hectares
-      let waterUsage = parseFloat(document.getElementById("waterUsage").value);   // in m³/day/hectare
-      
+      let areaHa      = parseFloat(document.getElementById("areaHa").value);      // ha
+      let waterUsage  = parseFloat(document.getElementById("waterUsage").value);  // m³/day/ha
+
       // Convert hectares to square meters (1 ha = 10,000 m²)
       let area_m2 = areaHa * 10000;
-      
+
       // Total water volume (m³) added per day
-      let totalWaterVolume = areaHa * waterUsage; // in m³/day
-      
+      let totalWaterVolume = areaHa * waterUsage; // m³/day
+
       // Convert volume to mass: 1 m³ of water = 1000 kg
-      let totalWaterMass = totalWaterVolume * 1000; // in kg/day
-      
+      let totalWaterMass = totalWaterVolume * 1000; // kg/day
+
       // Step 2: Boundary Layer Mixing
-      let blDepth = parseFloat(document.getElementById("blDepth").value);   // in meters
-      let airDensity = parseFloat(document.getElementById("airDensity").value); // in kg/m³
-      
-      // Calculate the volume of the boundary layer (above the field):
-      let blVolume = area_m2 * blDepth; // in m³
-      
-      // Total mass of air in the boundary layer:
-      let totalAirMass = blVolume * airDensity; // in kg
-      
-      // Increase in mixing ratio (kg water per kg air):
-      let delta_q = totalWaterMass / totalAirMass; // in kg/kg
-      
-      // Convert mixing ratio increase to g/kg:
-      let delta_q_gkg = delta_q * 1000;
-      
+      let blDepth    = parseFloat(document.getElementById("blDepth").value);     // m
+      let airDensity = parseFloat(document.getElementById("airDensity").value);  // kg/m³
+
+      // Volume of the boundary layer (above the field)
+      let blVolume = area_m2 * blDepth; // m³
+
+      // Total mass of air in the boundary layer
+      let totalAirMass = blVolume * airDensity; // kg
+
+      // Increase in mixing ratio (kg water per kg air)
+      let delta_q = totalWaterMass / totalAirMass; // kg/kg
+
+      // Convert mixing ratio increase to g/kg
+      let delta_q_gkg = delta_q * 1000; // g/kg
+
       // Step 3: Latent Heating & Temperature Boost
-      // Extra latent heat available per kg of air from condensation:
-      let delta_Q = L_v * delta_q; // in J/kg
-      
-      // Effective temperature increase if all latent energy warms the air:
-      let delta_T = delta_Q / c_p; // in K
-      
-      // Step 4: CAPE Increase Calculation
-      let avgTemp = parseFloat(document.getElementById("avgTemp").value); // in Kelvin
-      let capeLayer = parseFloat(document.getElementById("capeLayer").value); // in meters
-      
-      // Simplified CAPE increase:
-      let capeIncrease = g * (delta_T / avgTemp) * capeLayer; // in J/kg
-      
+      // Extra latent heat released per kg of air (J/kg)
+      let delta_Q = L_v * delta_q;
+
+      // Effective temperature increase if all latent energy warms the air
+      let delta_T = delta_Q / c_p; // K
+
+      // Step 4: CAPE Increase
+      let avgTemp   = parseFloat(document.getElementById("avgTemp").value);    // K
+      let capeLayer = parseFloat(document.getElementById("capeLayer").value);  // m
+
+      // Simplified approximate CAPE increase (J/kg)
+      let capeIncrease = g * (delta_T / avgTemp) * capeLayer;
+
       // Prepare the result string
       let results = `
         <h2>Results</h2>
@@ -144,7 +143,7 @@
           <em>Estimated CAPE increase: ${capeIncrease.toFixed(0)} J/kg</em>
         </p>
       `;
-      
+
       // Display the results
       document.getElementById("result").innerHTML = results;
     }
